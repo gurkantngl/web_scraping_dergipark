@@ -3,42 +3,90 @@ import re
 
 class ArticlesSpider(scrapy.Spider):
     name = "articles"
-    allowed_domains = ["scholar.google.com"]
-    start_urls = ["https://scholar.google.com/scholar?hl=tr&as_sdt=0%252C5&q="]
+    allowed_domains = ["dergipark.org.tr"]
+    start_urls = ["https://dergipark.org.tr/tr/search?q="]
     print("Aranacak anahtar kelimeyi girin: ")
     keyword = input()
     start_urls[0] += keyword
     
     print(start_urls)
 
+    
     def parse(self, response):
-        links = response.xpath("//div[@id='gs_res_ccl_mid']/div[@class='gs_r gs_or gs_scl']/div[@class='gs_ri']")
-        sperring_correction = response.xpath("//h2[@class='gs_rt']/text() | //h2[@class='gs_rt']/a/text() | //h2[@class='gs_rt']/a/b/i/text()").getall()
-        sperring_correction = ' '.join(sperring_correction)
+        links = response.xpath("//div[@class='card article-card dp-card-outline']")
+        wrong = response.xpath("//div[@class='alert-text']/p[1]//text()").getall()
+        wrong = ' '.join(wrong)
+        
         yield{
-            "sperring_correction" : sperring_correction
+            "wrong" : wrong,
+            "len" : len(links),
+            "keyword" : self.keyword
         }
+        
         for link in links:
-            title = link.xpath("string(.//h3[@class='gs_rt']/a)").get()
-            url = link.xpath(".//h3[@class='gs_rt']/a/@href").get()
-            author_ = link.xpath(".//div[@class='gs_a']/a/text() | .//div[@class='gs_a']/text()").getall()
-            author_ = ' '.join(author_)
-            author_l = author_.split("-",1)
-            authors = author_l[0].split(",")
-            authors = [author.strip() for author in authors]
-            publisher = author_l[1].split("-")[-1].strip()
-            date = re.findall(r'\d+', author_l[1])[0]
-            number_citation = link.xpath(".//div[@class='gs_fl gs_flb']/a[3]/text()").get()
-            number_citation = re.findall(r'\d+', number_citation)[0]
+            title = link.xpath(".//div[@class='card-body']/h5[@class='card-title']/a[1]/text()").get().strip()
+            url = link.xpath(".//div[@class='card-body']/h5[@class='card-title']/a[1]/@href").get().strip()
             
+            count = len(link.xpath(".//div[@class='card-body']/h5//small").getall())
+            
+            article_type = "-"
+            publisher = ""
+            if count == 2:
+                article_type = link.xpath(".//div[@class='card-body']/h5/small[1]/span/text()").get()
+                textList = link.xpath(".//div[@class='card-body']/h5/small[2]//text()").getall()  
+            else:
+                textList = link.xpath(".//div[@class='card-body']/h5/small[1]//text()").getall()
+            
+            str = ' '.join(textList)
+            str = str.replace("\n","")
+            str = str.strip()
+            
+            
+            authors = str.split('(', 1)[0].strip().split(',')
+            authors = [author.strip() for author in authors if len(author)!=0]
+            
+            publisher = re.search(r'\),\s*(.*?),', str)
+            if publisher:
+                publisher = publisher.group(1).strip()
+            
+            
+            date = re.search(r'\((.*?)\)', str)
+            if date:
+                date = date.group(1)
+
+            doi = link.xpath(".//a[starts-with(@href,'https://doi.org')]/text()").get()
+            if doi is None:
+                doi = "-"
+                
             yield{
+                "count" : count,
+                "type" : article_type,
                 "title" : title,
                 "link" : url,
                 "authors" : authors,
-                "number_citation" : number_citation,
                 "date" : date,
-                "publisher" : publisher
+                "publisher" : publisher,
+                "doi" : doi,
             }
-        
             
+            yield scrapy.Request(url, callback=self.parse_article)
+    
+    def parse_article(self, response):
+            title = response.xpath("//h3[@class='article-title']/text()").getall()
+            title = ' '.join(title).strip()
+            title = title.replace("\n","")
+            
+            abstract = response.xpath("//div[@class='article-abstract data-section']//p//text()").getall()
+            abstract = ' '.join(abstract).strip()
+            abstract = abstract.replace("\n","").replace("\r","")
+            
+            keywords = response.xpath("//div[@class='article-keywords data-section']/p//text()").getall()
+            keywords = [keyword.strip() for keyword in keywords if len(keyword.strip())!=0 and keyword not in ',']             
+            keywords = [word.split(';') if ";" in word else word for word in keywords ] 
+        
+            yield{
+                "title" : title,
+                "keywords" : keywords,
+                "abstract" : abstract,
+            }            
              
