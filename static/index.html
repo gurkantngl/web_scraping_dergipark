@@ -1,0 +1,31 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="styles.css">
+    <title>Dergipark</title>
+</head>
+
+<body>
+    <br><br><br><br><br>
+    <div class="logo">
+        <img src="dergipark_logo.png" alt="Dergipark Logo">
+    </div>
+    <form id="searchForm">
+        <input type="text" id="input" name="inputWords">
+        <br><br>
+        <input type="submit" id="search" value="Search">
+    </form>
+    <script>
+        document.getElementById("searchForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+            var searchInput = document.getElementById("input").value;
+            if (searchInput !== "") {
+                var searchURL = "https://www.google.com/search?q=" + encodeURIComponent(searchInput);
+                window.location.href = searchURL;
+            }
+        });
+    </script>
+
+</body>
+
+</html>
