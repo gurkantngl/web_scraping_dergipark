@@ -1,14 +1,15 @@
-<html>
-
+<!DOCTYPE html>
+{% load static %}
+<html lang="tr">
 <head>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
     <title>Dergipark</title>
 </head>
 
 <body>
     <br><br><br><br><br>
     <div class="logo">
-        <img src="dergipark_logo.png" alt="Dergipark Logo">
+        <img src="{% static 'dergipark_logo.png' %}" alt="Dergipark Logo">
     </div>
     <form id="searchForm">
         <input type="text" id="input" name="inputWords">
