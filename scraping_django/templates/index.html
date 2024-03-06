@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 {% load static %}
+{% csrf_token %}
 <html lang="tr">
 <head>
     <link rel="stylesheet" href="{% static 'styles.css' %}">
@@ -11,21 +12,12 @@
     <div class="logo">
         <img src="{% static 'dergipark_logo.png' %}" alt="Dergipark Logo">
     </div>
-    <form id="searchForm">
+    <form id="searchForm" action="{% url 'search' %}" method="post">
         <input type="text" id="input" name="inputWords">
         <br><br>
         <input type="submit" id="search" value="Search">
     </form>
-    <script>
-        document.getElementById("searchForm").addEventListener("submit", function (event) {
-            event.preventDefault();
-            var searchInput = document.getElementById("input").value;
-            if (searchInput !== "") {
-                var searchURL = "https://www.google.com/search?q=" + encodeURIComponent(searchInput);
-                window.location.href = searchURL;
-            }
-        });
-    </script>
+    
 
 </body>
 
