@@ -3,6 +3,7 @@ import re
 from pymongo.mongo_client import MongoClient
 from inline_requests import inline_requests
 from scrapy.http import Request
+import sys
 
 client = MongoClient('127.0.0.1',27017)
 
@@ -13,14 +14,16 @@ collection_name = db["Articles"]
 
 class ArticlesSpider(scrapy.Spider):
     name = "articles"
+    keyword = sys.argv[0]
+
+    
     allowed_domains = ["dergipark.org.tr"]
     start_urls = ["https://dergipark.org.tr/tr/search?q="]
-    print("Aranacak anahtar kelimeyi girin: ")
-    keyword = input()
+    
     start_urls[0] += keyword
     articles = {keyword:[]}
     articles2 = {keyword:[]}
-    print(start_urls)
+    print("------------------- start_url: -------------",start_urls)
     count = 0
     count2 = 0
     

@@ -18,6 +18,7 @@
             <br>
             <input type="submit" id="search" value="Search">
         </form>
+        <br>
         <form id="list_db" action="{% url 'list_db' %}" method="post">
             {% csrf_token %}
             <input type="submit" id="list" value="View Database">
