@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 {% load static %}
-{% csrf_token %}
 <html lang="tr">
 <head>
     <link rel="stylesheet" href="{% static 'styles.css' %}">
@@ -12,12 +11,18 @@
     <div class="logo">
         <img src="{% static 'dergipark_logo.png' %}" alt="Dergipark Logo">
     </div>
-    <form id="searchForm" action="{% url 'search' %}" method="post">
-        <input type="text" id="input" name="inputWords">
-        <br><br>
-        <input type="submit" id="search" value="Search">
-    </form>
-    
+    <div>
+        <form id="searchForm" action="{% url 'search' %}" method="post">
+            {% csrf_token %}
+            <input type="text" id="input" name="inputWords">
+            <br>
+            <input type="submit" id="search" value="Search">
+        </form>
+        <form id="list_db" action="{% url 'list_db' %}" method="post">
+            {% csrf_token %}
+            <input type="submit" id="list" value="View Database">
+        </form>
+    </div>
 
 </body>
 

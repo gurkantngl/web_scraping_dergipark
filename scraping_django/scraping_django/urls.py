@@ -5,6 +5,6 @@ from main_page import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('',views.index, name='index'),
-    path('search/', include("articles_page.urls")),
-    path('list_db/',include("articles_page.urls"))
+    path('search/', include("search_article.urls")),
+    path('list_db/',include("list_db.urls"))
 ]
