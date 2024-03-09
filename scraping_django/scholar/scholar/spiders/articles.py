@@ -3,29 +3,27 @@ import re
 from pymongo.mongo_client import MongoClient
 from inline_requests import inline_requests
 from scrapy.http import Request
-import sys
 
 client = MongoClient('127.0.0.1',27017)
-
 db = client.Yazlab2
-
 collection_name = db["Articles"]
-
 
 class ArticlesSpider(scrapy.Spider):
     name = "articles"
-    keyword = sys.argv[0]
+    
+    def __init__(self, keyword="parkinson"):
+        self.keyword = keyword
 
+        self.allowed_domains = ["dergipark.org.tr"]
+        self.start_urls = ["https://dergipark.org.tr/tr/search?q="]
+        
+        self.start_urls[0] += keyword
+        self.articles = {keyword:[]}
+        self.articles2 = {keyword:[]}
+        self.count = 0
+        self.count2 = 0
     
-    allowed_domains = ["dergipark.org.tr"]
-    start_urls = ["https://dergipark.org.tr/tr/search?q="]
     
-    start_urls[0] += keyword
-    articles = {keyword:[]}
-    articles2 = {keyword:[]}
-    print("------------------- start_url: -------------",start_urls)
-    count = 0
-    count2 = 0
     
     @inline_requests
     def parse(self, response):
@@ -124,9 +122,7 @@ class ArticlesSpider(scrapy.Spider):
             "abstract" : abstract,
         } 
         
-        print("=======================eklendi")
         self.articles2[self.keyword].append(article)
-        
         self.count2+=1
         
         if self.count == self.count2:
@@ -138,8 +134,8 @@ class ArticlesSpider(scrapy.Spider):
             
             try:
                 result = collection_name.insert_one(self.articles)
-            except:
-                print("===================================Error===============================")
+            except Exception as e:
+                print(e)
             
         yield
     

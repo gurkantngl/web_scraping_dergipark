@@ -47,7 +47,8 @@ input[type="submit"] {
     top:265px;
     left: 870px;
 }
-#searchForm, #listForm {
-    display: inline-block;
-    margin-right: 10px;
+.search {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }

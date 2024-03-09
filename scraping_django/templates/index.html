@@ -7,11 +7,9 @@
 </head>
 
 <body>
-    <br><br><br><br><br>
     <div class="logo">
         <img src="{% static 'dergipark_logo.png' %}" alt="Dergipark Logo">
     </div>
-    <div>
         <form id="searchForm" action="{% url 'search' %}" method="post">
             {% csrf_token %}
             <input type="text" id="input" name="inputWords">
@@ -23,8 +21,6 @@
             {% csrf_token %}
             <input type="submit" id="list" value="View Database">
         </form>
-    </div>
-
 </body>
 
 </html>
