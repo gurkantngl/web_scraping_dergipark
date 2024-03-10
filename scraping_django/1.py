@@ -15,7 +15,7 @@ for document in collection_name.find():
     document_id = document.pop('_id')
     es.index(index='your_elasticsearch_index', id=document_id, body=dumps(document))
 
-time.sleep(3)
+time.sleep(1)
 
 result = es.search(index='your_elasticsearch_index', body={
    "query": {
@@ -24,5 +24,5 @@ result = es.search(index='your_elasticsearch_index', body={
 })  
 print(result)
 
-response = es.indices.delete(index='your_elasticsearch_index', ignore=[400, 404])
-print(response)
+# response = es.indices.delete(index='your_elasticsearch_index', ignore=[400, 404])
+# print(response)

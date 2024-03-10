@@ -23,5 +23,4 @@ def search(request):
         return HttpResponse(f"Scraping yapılan keyword: {input_words}")
     
     else:
-        # Form sayfasını göster
         return render(request, 'your_template.html')
