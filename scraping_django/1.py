@@ -8,7 +8,7 @@ collection_name = db["Articles"]
 es = Elasticsearch('http://localhost:9200')
 
 for document in collection_name.find():
-    document_id = document.pop('_id')  # _id alanını belgeden çıkarın
+    document_id = document.pop('_id')
     es.index(index='your_elasticsearch_index', id=document_id, body=dumps(document))
 
 result = es.search(index='your_elasticsearch_index', body={
