@@ -11,7 +11,7 @@ es = Elasticsearch('http://localhost:9200')
 
 author = "Makbule Damla Yılmaz"
 
-result = es.search(index='your_elasticsearch_index', body={
+result = es.search(index='author_filter', body={
    "query": {
         "bool": {
             "filter": [
@@ -31,3 +31,7 @@ for hit in result['hits']['hits']:
         print(hit['_source']['authors'])
     except KeyError:
         continue
+    
+#indexi temizleme
+response = es.indices.delete(index='author_filter', ignore=[400, 404])
+print(response)

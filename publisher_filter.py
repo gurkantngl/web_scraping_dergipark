@@ -7,11 +7,17 @@ client = MongoClient('127.0.0.1',27017)
 db = client.Yazlab2
 collection_name = db["Articles"]
 
-es = Elasticsearch('http://localhost:9200')
+es = Elasticsearch()
 
 publisher = "Computers and Informatics"
 
-result = es.search(index='your_elasticsearch_index', body={
+# index oluşturma
+for document in collection_name.find():
+    document_id = document.pop('_id')
+    es.index(index='publisher_filter', id=document_id, body=dumps(document))
+
+# filtreleme
+result = es.search(index='publisher_filter', body={
    "query": {
         "bool": {
             "must": [
@@ -26,8 +32,13 @@ result = es.search(index='your_elasticsearch_index', body={
    }
 })
 
+# sonuçları yazdırma
 for hit in result['hits']['hits']:
     try:
         print(hit['_source']['publisher'])
     except KeyError:
         continue
+
+# indexi temizleme
+response = es.indices.delete(index='publisher_filter', ignore=[400, 404])
+print(response)
