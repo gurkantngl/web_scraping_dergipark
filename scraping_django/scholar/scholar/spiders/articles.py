@@ -18,8 +18,8 @@ class ArticlesSpider(scrapy.Spider):
         self.start_urls = ["https://dergipark.org.tr/tr/search?q="]
         
         self.start_urls[0] += keyword
-        self.articles = {keyword:[]}
-        self.articles2 = {keyword:[]}
+        self.articles = []
+        self.articles2 = []
         self.count = 0
         self.count2 = 0
     
@@ -85,7 +85,7 @@ class ArticlesSpider(scrapy.Spider):
                     "doi" : doi,
                 }
                 
-                self.articles[self.keyword].append(article)
+                self.articles.append(article)
                 
             
                 
@@ -117,23 +117,26 @@ class ArticlesSpider(scrapy.Spider):
         
         article = {
             "title" : title,
+            "keyword" : self.keyword,
             "references" : referenceList,
             "keywords" : keywords,
             "abstract" : abstract,
         } 
         
-        self.articles2[self.keyword].append(article)
+        self.articles2.append(article)
         self.count2+=1
         
         if self.count == self.count2:
-            for i in self.articles[self.keyword]:
-                for j in self.articles2[self.keyword]:
+            for i in self.articles:
+                for j in self.articles2:
                     if i["title"] == j["title"]:
                         i.update(j)
                         break
-            
+        
+            print(self.articles)
             try:
-                result = collection_name.insert_one(self.articles)
+                for article in self.articles:   
+                    result = collection_name.insert_one(article)
             except Exception as e:
                 print(e)
             
