@@ -4,6 +4,10 @@ from scrapy.crawler import CrawlerProcess
 from scholar.scholar.spiders import articles
 from scrapy.utils.project import get_project_settings
 from multiprocessing import Process
+from elasticsearch import Elasticsearch
+from pymongo import MongoClient
+from bson.json_util import dumps
+import time
 
 def run_scrapy(input_words):
     process = CrawlerProcess(get_project_settings())
@@ -20,7 +24,41 @@ def search(request):
         scrapy_process.start()
         scrapy_process.join()
 
-        return HttpResponse(f"Scraping yapılan keyword: {input_words}")
+        client = MongoClient('127.0.0.1',27017)
+        db = client.Yazlab2
+        collection_name = db["Articles"]
+        es = Elasticsearch('http://localhost:9200')
+        
+        for document in collection_name.find():
+            document_id = document.pop('_id')
+            es.index(index='index', id=document_id, body=dumps(document))
+
+
+        time.sleep(1)
+        
+        result = es.search(index='index', body={
+            "query": {
+                "bool": {
+                    "filter": [
+                        {
+                            "term": {
+                                "keyword.keyword": input_words
+                            }
+                        }
+                    ]
+                }
+        } ,
+            "size": 10000
+        })
+        
+        articles = result['hits']['hits']
+        articles = [article['_source'] for article in articles]
+        print("length: ",len(articles))
+        
+        response = es.indices.delete(index='index', ignore=[400, 404])
+        print("response: ",response)
+
+        return render(request, 'article_page.html', {'articles': articles})
     
     else:
-        return render(request, 'your_template.html')
+        return HttpResponse("Error")

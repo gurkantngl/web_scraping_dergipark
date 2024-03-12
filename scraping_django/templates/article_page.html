@@ -4,26 +4,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Makale Bilgi Sitesi</title>
+    <title>DergiPark Akademi</title>
     <link rel="stylesheet" href="{% static 'article_page.css' %}">
 </head>
 <body>
 
     <header>
-        <h1>Makale Bilgi Sitesi</h1>
+        <h1>DergiPark</h1>
     </header>
+    {% for article in articles %}
+        <section id="makale">
+            <h2> {{ article.title }} </h2>
+            <p><strong>Yayın Türü:</strong> {{ article.type }}</p>
+            <p><strong>Yayımlanma Tarihi:</strong> {{ article.date }}</p>
+            <p><strong>Yayıncı İsmi: </strong> {{article.publisher}} </p>
+            <p><strong>Yazarlar:</strong> {% for author in article.authors %}
+                                            {{ author }}{% if not forloop.last %}, {% endif %}
+                                            {% endfor %} </p>
+            <p><strong>DOI:</strong> {{ article.doi }}</p>
+            <p><strong>Özet:</strong> {{ article.abstract }}</p>
+        </section>
+    {% endfor %}
 
-    <section id="makale">
-        <h2>Makale Başlığı</h2>
-        <p><strong>Yazar(lar):</strong> Yazar Adı 1, Yazar Adı 2</p>
-        <p><strong>Yayın Türü:</strong> Bilimsel Makale</p>
-        <p><strong>Yayımlanma Tarihi:</strong> 6 Mart 2024</p>
-        <!-- Diğer bilgileri buraya ekleyebilirsiniz -->
-    </section>
-
-    <footer>
-        <p>&copy; 2024 Makale Bilgi Sitesi</p>
-    </footer>
-
+</body>
+</html>
 </body>
 </html>

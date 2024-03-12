@@ -6,7 +6,6 @@ import time
 client = MongoClient('127.0.0.1',27017)
 db = client.Yazlab2
 collection_name = db["Articles"]
-# Elasticsearch'e bağlanın
 es = Elasticsearch('http://localhost:9200')
 
 
@@ -24,11 +23,11 @@ result = es.search(index='your_elasticsearch_index', body={
    }
 })
 
-
+print(type(result['hits']['hits']))
 # Sonuçları yazdırın
-print("Arama Sonuçları:")
-for hit in result['hits']['hits']:
-    print(hit['_source'])
+# print("Arama Sonuçları:")
+# for hit in result['hits']['hits']:
+#     print(type(hit['_source']))
 
 response = es.indices.delete(index='your_elasticsearch_index', ignore=[400, 404])# Silinen belgelerin sayısını yazdırın
 print("Silinen Belgelerin Sayısı:", response)
