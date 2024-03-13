@@ -12,22 +12,41 @@
     <header>
         <h1>DergiPark</h1>
     </header>
+    <div class="center">
+        <select>
+            {% for keyword in keywords %}
+                <option value="{{ keyword }}">{{ keyword }}</option>
+            {% endfor %}
+        </select>
+
+        <select>
+            {% for author in authors %}
+                <option value="{{ author }}">{{ author }}</option>
+            {% endfor %}
+        </select>
+
+        <select>
+            {% for type in types %}
+                <option value="{{ type }}">{{ type }}</option>
+            {% endfor %}
+        </select>
+
+        <input type="text" name="min_date" placeholder="Min Tarih">
+        <input type="text" name="max_date" placeholder="Max Tarih">
+    </div>
+
+
     {% for article in articles %}
         <section id="makale">
-            <h2> {{ article.title }} </h2>
+            <h2>{{ article.title }}</h2>
             <p><strong>Yayın Türü:</strong> {{ article.type }}</p>
             <p><strong>Yayımlanma Tarihi:</strong> {{ article.date }}</p>
-            <p><strong>Yayıncı İsmi: </strong> {{article.publisher}} </p>
+            <p><strong>Yayıncı İsmi:</strong> {{ article.publisher }}</p>
             <p><strong>Yazarlar:</strong> {% for author in article.authors %}
-                                            {{ author }}{% if not forloop.last %}, {% endif %}
-                                            {% endfor %} </p>
+                                        {{ author }}{% if not forloop.last %}, {% endif %}
+                                        {% endfor %}</p>
             <p><strong>DOI:</strong> {{ article.doi }}</p>
             <p><strong>Özet:</strong> {{ article.abstract }}</p>
         </section>
     {% endfor %}
-    {{keywords}}
-
-</body>
-</html>
-</body>
-</html>
+    {{ types }}

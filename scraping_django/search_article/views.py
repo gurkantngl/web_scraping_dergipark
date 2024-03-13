@@ -29,9 +29,11 @@ def search(request):
         db = client.Yazlab2
         collection_name = db["Articles"]
         es = Elasticsearch("http://localhost:9200")
-
-        keywords = [doc['keyword'] for doc in collection_name.find({}, {'_id': 0, 'keyword': 1}) if 'keyword' in doc]
-
+        
+        types = list(set([doc['type'] for doc in collection_name.find({}, {'_id': 0, 'type': 1}) if 'type' in doc]))
+        authors = list(set([author for document in collection_name.find() for author in document.get("authors", [])]))
+        keywords = list(set([doc['keyword'] for doc in collection_name.find({}, {'_id': 0, 'keyword': 1}) if 'keyword' in doc]))
+        
         for document in collection_name.find():
             document_id = document.pop("_id")
             es.index(index="index", id=document_id, body=dumps(document))
@@ -52,7 +54,7 @@ def search(request):
 
         response = es.indices.delete(index="index", ignore=[400, 404])
 
-        return render(request, "article_page.html", {"articles": articles, "keywords": keywords})
+        return render(request, "article_page.html", {"articles": articles, "keywords": keywords, "authors": authors, "types": types})
 
     else:
         return HttpResponse("Error")
