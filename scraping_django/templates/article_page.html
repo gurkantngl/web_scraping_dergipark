@@ -12,29 +12,33 @@
     <header>
         <h1>DergiPark</h1>
     </header>
-    <div class="center">
-        <select>
-            {% for keyword in keywords %}
-                <option value="{{ keyword }}">{{ keyword }}</option>
-            {% endfor %}
-        </select>
 
-        <select>
-            {% for author in authors %}
-                <option value="{{ author }}">{{ author }}</option>
-            {% endfor %}
-        </select>
+    <form id="filterDB" action="{% url 'search' %}" method="POST">
+        {% csrf_token %}
+        <div class="center">
+            <select>
+                {% for keyword in keywords %}
+                    <option value="{{ keyword }}">{{ keyword }}</option>
+                {% endfor %}
+            </select>
 
-        <select>
-            {% for type in types %}
-                <option value="{{ type }}">{{ type }}</option>
-            {% endfor %}
-        </select>
+            <select>
+                {% for author in authors %}
+                    <option value="{{ author }}">{{ author }}</option>
+                {% endfor %}
+            </select>
 
-        <input type="text" name="min_date" placeholder="Min Tarih">
-        <input type="text" name="max_date" placeholder="Max Tarih">
-    </div>
-
+            <select>
+                {% for type in types %}
+                    <option value="{{ type }}">{{ type }}</option>
+                {% endfor %}
+            </select>
+            <input type="text" name="min_date" placeholder="Min Tarih" maxlength="4">
+            <input type="text" name="max_date" placeholder="Max Tarih" maxlength="4">
+            
+            <button type="submit">Filtrele</button>
+        </div>
+    </form>
 
     {% for article in articles %}
         <section id="makale">
