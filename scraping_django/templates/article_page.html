@@ -1,56 +1,68 @@
 <!DOCTYPE html>
 {% load static %}
 <html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DergiPark Akademi</title>
-    <link rel="stylesheet" href="{% static 'article_page.css' %}">
-</head>
-<body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>DergiPark Akademi</title>
+        <link rel="stylesheet" href="{% static 'article_page.css' %}" />
+    </head>
+    <body>
+        <header>
+            <h1>DergiPark</h1>
+        </header>
 
-    <header>
-        <h1>DergiPark</h1>
-    </header>
+        <form id="filterDB" action="{% url 'filter' %}" method="POST">
+            {% csrf_token %}
+            <div class="center">
+                <select name="keyword">
+                    {% for keyword in keywords %}
+                        <option value="{{ keyword }}">{{ keyword }}</option>
+                    {% endfor %}
+                </select>
+                <select name="author">
+                    {% for author in authors %}
+                        <option value="{{ author }}">{{ author }}</option>
+                    {% endfor %}
+                </select>
+                <select name="type">
+                    {% for type in types %}
+                        <option value="{{ type }}">{{ type }}</option>
+                    {% endfor %}
+                </select>
 
-    <form id="filterDB" action="{% url 'search' %}" method="POST">
-        {% csrf_token %}
-        <div class="center">
-            <select>
-                {% for keyword in keywords %}
-                    <option value="{{ keyword }}">{{ keyword }}</option>
-                {% endfor %}
-            </select>
-
-            <select>
-                {% for author in authors %}
-                    <option value="{{ author }}">{{ author }}</option>
-                {% endfor %}
-            </select>
-
-            <select>
-                {% for type in types %}
-                    <option value="{{ type }}">{{ type }}</option>
-                {% endfor %}
-            </select>
-            <input type="text" name="min_date" placeholder="Min Tarih" maxlength="4">
-            <input type="text" name="max_date" placeholder="Max Tarih" maxlength="4">
+                <input type="text" name="min_date" placeholder="Min Tarih" maxlength="4" />
+                <input type="text" name="max_date" placeholder="Max Tarih" maxlength="4" />
+                <button type="submit">Filtrele</button>
             
-            <button type="submit">Filtrele</button>
-        </div>
-    </form>
+            </div>
+        </form>
 
-    {% for article in articles %}
-        <section id="makale">
-            <h2>{{ article.title }}</h2>
-            <p><strong>Yayın Türü:</strong> {{ article.type }}</p>
-            <p><strong>Yayımlanma Tarihi:</strong> {{ article.date }}</p>
-            <p><strong>Yayıncı İsmi:</strong> {{ article.publisher }}</p>
-            <p><strong>Yazarlar:</strong> {% for author in article.authors %}
-                                        {{ author }}{% if not forloop.last %}, {% endif %}
-                                        {% endfor %}</p>
-            <p><strong>DOI:</strong> {{ article.doi }}</p>
-            <p><strong>Özet:</strong> {{ article.abstract }}</p>
-        </section>
-    {% endfor %}
-    {{ types }}
+        {% for article in articles %}
+            <section id="makale">
+                <h2>{{ article.title }}</h2>
+                <p>
+                    <strong>Yayın Türü:</strong> {{ article.type }}
+                </p>
+                <p>
+                    <strong>Yayımlanma Tarihi:</strong> {{ article.date }}
+                </p>
+                <p>
+                    <strong>Yayıncı İsmi:</strong> {{ article.publisher }}
+                </p>
+                <p>
+                    <strong>Yazarlar:</strong> {% for author in article.authors %}
+                        {{ author }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </p>
+                <p>
+                    <strong>DOI:</strong> {{ article.doi }}
+                </p>
+                <p>
+                    <strong>Özet:</strong> {{ article.abstract }}
+                </p>
+            </section>
+        {% endfor %}
+        {{ types }}
+    </body>
+</html>

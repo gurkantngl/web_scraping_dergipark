@@ -58,3 +58,172 @@ def search(request):
 
     else:
         return HttpResponse("Error")
+
+def filter(request):
+    if request.method == "POST":
+        keyword = request.POST.get("keyword", "")
+        author = request.POST.get("author", "")
+        type_value = request.POST.get("type", "")
+        min_date = request.POST.get("min_date", "")
+        max_date = request.POST.get("max_date", "")
+        
+        print(f"Keyword: {type(keyword)}, Author: {type(author)}, Type: {type(type_value)}, Min Date: {type(min_date)}, Max Date: {type(max_date)}")
+        
+        return HttpResponse(f"Keyword: {type(keyword)}, Author: {type(author)}, Type: {type(type_value)}, Min Date: {type(min_date)}, Max Date: {type(max_date)}")
+   
+    
+def author_filter():
+    client = MongoClient('127.0.0.1',27017)
+    db = client.Yazlab2
+    collection_name = db["Articles"]
+
+    es = Elasticsearch('http://localhost:9200')
+
+    author = "Elif TAŞDEMİR"
+
+    for document in collection_name.find():
+        document_id = document.pop('_id')
+        es.index(index='author_filter', id=document_id, body=dumps(document))
+
+    time.sleep(1)
+
+    result = es.search(index='author_filter', body={
+    "query": {
+            "bool": {
+                "filter": [
+                    {
+                        "term": {
+                            "authors.keyword": author
+                        }
+                    }
+                ]
+            }
+    }
+    })
+
+    for hit in result['hits']['hits']:
+        try:
+            print(hit['_source']['authors'])
+        except KeyError:
+            continue
+        
+    #indexi temizleme
+    response = es.indices.delete(index='author_filter', ignore=[400, 404])
+    print(response)
+    
+    
+def publisher_filter():
+    client = MongoClient('127.0.0.1',27017)
+    db = client.Yazlab2
+    collection_name = db["Articles"]
+
+    es = Elasticsearch('http://localhost:9200')
+    publisher = "Türkiye Sağlık Araştırmaları Dergisi"
+
+    # index oluşturma
+    for document in collection_name.find():
+        document_id = document.pop('_id')
+        es.index(index='publisher_filter', id=document_id, body=dumps(document))
+
+    time.sleep(1)
+
+    # filtreleme
+    result = es.search(index='publisher_filter', body={
+    "query": {
+            "bool": {
+                "filter": [
+                    {
+                        "term": {
+                            "publisher.keyword": publisher
+                        }
+                    }
+                ]
+            }
+    }
+    })
+
+    # sonuçları yazdırma
+    for hit in result['hits']['hits']:
+        try:
+            print(hit['_source']['publisher'])
+        except KeyError:
+            continue
+
+    # indexi temizleme
+    response = es.indices.delete(index='publisher_filter', ignore=[400, 404])
+    print(response)
+
+
+def date_filter():
+    client = MongoClient('127.0.0.1',27017)
+    db = client.Yazlab2
+    collection_name = db["Articles"]
+
+    es = Elasticsearch('http://localhost:9200')
+
+    start_year = 2010
+    end_year = 2024
+
+    for document in collection_name.find():
+        document_id = document.pop('_id')
+        es.index(index='date_filter', id=document_id, body=dumps(document))
+
+    time.sleep(1)
+
+    result = es.search(index='date_filter', body={
+    "query": {
+        "range": {
+            "date": {
+                "gte": start_year,
+                "lte": end_year
+            }
+        }
+    }
+    })
+
+    # Bulunan belgelerin tarihlerini yazdırma
+    for hit in result['hits']['hits']:
+        print(hit['_source']['date'])
+        
+    response = es.indices.delete(index='date_filter', ignore=[400, 404])
+    print(response)  
+    
+def type_filter():
+    client = MongoClient('127.0.0.1',27017)
+    db = client.Yazlab2
+    mongo_collection = db["Articles"]
+
+    es = Elasticsearch('http://localhost:9200')
+
+    type_value = "Araştırma Makalesi"
+
+
+    for document in mongo_collection.find():
+        document_id = document.pop('_id')
+        es.index(index='type_filter', id=document_id, body=dumps(document))
+
+    time.sleep(1)
+
+    result = es.search(index='type_filter', body={
+    "query": {
+            "bool": {
+                "filter": [
+                    {
+                        "term": {
+                            "type.keyword": type_value
+                        }
+                    }
+                ]
+            }
+    }
+    })
+
+    for hit in result['hits']['hits']:
+        try:
+            print(hit['_source']['type'])
+        except KeyError:
+            continue
+        
+    # indexi temizleme
+    response = es.indices.delete(index='type_filter', ignore=[400, 404])
+    print(response)
