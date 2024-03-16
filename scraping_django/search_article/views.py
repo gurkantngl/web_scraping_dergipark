@@ -30,9 +30,19 @@ def search(request):
         collection_name = db["Articles"]
         es = Elasticsearch("http://localhost:9200")
         
+        not_found = collection_name.find_one({"not_found": {"$exists": True}})
+        l = len(not_found)
+        if len(not_found["not_found"]) != 0:
+            return render(request, "not_found.html", {"not_found": not_found["not_found"]})
+        
         types = list(set([doc['type'] for doc in collection_name.find({}, {'_id': 0, 'type': 1}) if 'type' in doc]))
+        types.insert(0, "")
+        
         authors = list(set([author for document in collection_name.find() for author in document.get("authors", [])]))
+        authors.insert(0, "")
+        
         keywords = list(set([doc['keyword'] for doc in collection_name.find({}, {'_id': 0, 'keyword': 1}) if 'keyword' in doc]))
+        keywords.insert(0, "")
         
         for document in collection_name.find():
             document_id = document.pop("_id")
@@ -54,7 +64,7 @@ def search(request):
 
         response = es.indices.delete(index="index", ignore=[400, 404])
 
-        return render(request, "article_page.html", {"articles": articles, "keywords": keywords, "authors": authors, "types": types})
+        return render(request, "article_page.html", {"articles": articles, "keywords": keywords, "authors": authors, "types": types, "keyword": input_words})
 
     else:
         return HttpResponse("Error")
@@ -67,163 +77,139 @@ def filter(request):
         min_date = request.POST.get("min_date", "")
         max_date = request.POST.get("max_date", "")
         
-        print(f"Keyword: {type(keyword)}, Author: {type(author)}, Type: {type(type_value)}, Min Date: {type(min_date)}, Max Date: {type(max_date)}")
-        
-        return HttpResponse(f"Keyword: {type(keyword)}, Author: {type(author)}, Type: {type(type_value)}, Min Date: {type(min_date)}, Max Date: {type(max_date)}")
-   
-    
-def author_filter():
-    client = MongoClient('127.0.0.1',27017)
-    db = client.Yazlab2
-    collection_name = db["Articles"]
-
-    es = Elasticsearch('http://localhost:9200')
-
-    author = "Elif TAŞDEMİR"
-
-    for document in collection_name.find():
-        document_id = document.pop('_id')
-        es.index(index='author_filter', id=document_id, body=dumps(document))
-
-    time.sleep(1)
-
-    result = es.search(index='author_filter', body={
-    "query": {
-            "bool": {
-                "filter": [
-                    {
-                        "term": {
-                            "authors.keyword": author
-                        }
-                    }
-                ]
-            }
-    }
-    })
-
-    for hit in result['hits']['hits']:
-        try:
-            print(hit['_source']['authors'])
-        except KeyError:
-            continue
-        
-    #indexi temizleme
-    response = es.indices.delete(index='author_filter', ignore=[400, 404])
-    print(response)
-    
-    
-def publisher_filter():
-    client = MongoClient('127.0.0.1',27017)
-    db = client.Yazlab2
-    collection_name = db["Articles"]
-
-    es = Elasticsearch('http://localhost:9200')
-    publisher = "Türkiye Sağlık Araştırmaları Dergisi"
-
-    # index oluşturma
-    for document in collection_name.find():
-        document_id = document.pop('_id')
-        es.index(index='publisher_filter', id=document_id, body=dumps(document))
-
-    time.sleep(1)
-
-    # filtreleme
-    result = es.search(index='publisher_filter', body={
-    "query": {
-            "bool": {
-                "filter": [
-                    {
-                        "term": {
-                            "publisher.keyword": publisher
-                        }
-                    }
-                ]
-            }
-    }
-    })
-
-    # sonuçları yazdırma
-    for hit in result['hits']['hits']:
-        try:
-            print(hit['_source']['publisher'])
-        except KeyError:
-            continue
-
-    # indexi temizleme
-    response = es.indices.delete(index='publisher_filter', ignore=[400, 404])
-    print(response)
-
-
-def date_filter():
-    client = MongoClient('127.0.0.1',27017)
-    db = client.Yazlab2
-    collection_name = db["Articles"]
-
-    es = Elasticsearch('http://localhost:9200')
-
-    start_year = 2010
-    end_year = 2024
-
-    for document in collection_name.find():
-        document_id = document.pop('_id')
-        es.index(index='date_filter', id=document_id, body=dumps(document))
-
-    time.sleep(1)
-
-    result = es.search(index='date_filter', body={
-    "query": {
-        "range": {
-            "date": {
-                "gte": start_year,
-                "lte": end_year
+        body = {
+            "query": {
+                "bool": {
+                    "must" : []
+                }
             }
         }
-    }
-    })
-
-    # Bulunan belgelerin tarihlerini yazdırma
-    for hit in result['hits']['hits']:
-        print(hit['_source']['date'])
         
-    response = es.indices.delete(index='date_filter', ignore=[400, 404])
-    print(response)  
-    
-def type_filter():
-    client = MongoClient('127.0.0.1',27017)
-    db = client.Yazlab2
-    mongo_collection = db["Articles"]
-
-    es = Elasticsearch('http://localhost:9200')
-
-    type_value = "Araştırma Makalesi"
-
-
-    for document in mongo_collection.find():
-        document_id = document.pop('_id')
-        es.index(index='type_filter', id=document_id, body=dumps(document))
-
-    time.sleep(1)
-
-    result = es.search(index='type_filter', body={
-    "query": {
-            "bool": {
-                "filter": [
-                    {
-                        "term": {
-                            "type.keyword": type_value
+        if len(keyword) != 0:
+            print("keyword filtresi")
+        
+        if len(author) != 0:
+            print("author filtresi")
+            query = {
+                    "bool": {
+                        "filter": [
+                            {
+                                "term": {
+                                    "authors.keyword": author
+                                }
+                            }
+                        ]
+                    }
+                }
+            
+            body["query"]["bool"]["must"].append(query)
+        
+        if len(type_value) != 0:
+            print("type filtresi")
+            query = {
+                    "bool": {
+                        "filter": [
+                            {
+                                "term": {
+                                    "type.keyword": type_value
+                                }
+                            }
+                        ]
+                    }
+                }
+            
+            body["query"]["bool"]["must"].append(query)
+            
+        if len(min_date) != 0 and len(max_date) != 0:
+            print("tarih filtresi")
+            query = {
+                    "range": {
+                        "date": {
+                            "gte": min_date,
+                            "lte": max_date
                         }
                     }
-                ]
-            }
-    }
-    })
-
-    for hit in result['hits']['hits']:
-        try:
-            print(hit['_source']['type'])
-        except KeyError:
-            continue
+                }
+            
+            body["query"]["bool"]["must"].append(query)
+                
+        client = MongoClient('127.0.0.1',27017)
+        db = client.Yazlab2
+        collection_name = db["Articles"]
+        es = Elasticsearch('http://localhost:9200')        
         
-    # indexi temizleme
-    response = es.indices.delete(index='type_filter', ignore=[400, 404])
-    print(response)
+        for document in collection_name.find():
+            document_id = document.pop('_id') 
+            es.index(index='filter_index', id=document_id, body=dumps(document))
+                
+        time.sleep(1)
+        
+        result = es.search(index='filter_index', body=body)
+        
+        for hit in result['hits']['hits']:
+            print(type(hit['_source']))
+        
+        articles = result["hits"]["hits"]
+        articles = [article["_source"] for article in articles]
+
+        response = es.indices.delete(index="filter_index", ignore=[400, 404])        
+        
+        types = list(set([doc['type'] for doc in collection_name.find({}, {'_id': 0, 'type': 1}) if 'type' in doc]))
+        types.insert(0, "")
+        
+        authors = list(set([author for document in collection_name.find() for author in document.get("authors", [])]))
+        authors.insert(0, "")
+        
+        keywords = list(set([doc['keyword'] for doc in collection_name.find({}, {'_id': 0, 'keyword': 1}) if 'keyword' in doc]))
+        keywords.insert(0, "")
+        
+        return render(request, 'article_page.html', {"articles": articles, "keywords": keywords, "authors": authors, "types": types})  
+
+def sort(request):
+    if request.method == 'POST':
+        sortSelect = request.POST.get('sortSelect', '')
+        incdec = request.POST.get('incdec', '')
+        keyword = request.POST.get('keyword', '')
+        
+        client = MongoClient("127.0.0.1", 27017)
+        db = client.Yazlab2
+        collection_name = db["Articles"]
+        es = Elasticsearch("http://localhost:9200")
+        
+        for document in collection_name.find():
+            document_id = document.pop("_id")
+            es.index(index="index", id=document_id, body=dumps(document))
+        time.sleep(1)
+        
+        result = es.search(
+            index="index",
+            body={
+                "query": {
+                    "bool": {"filter": [{"term": {"keyword.keyword": keyword}}]}
+                },
+                "size": 10000,
+            },
+        )
+        
+        articles = result["hits"]["hits"]
+        articles = [article["_source"] for article in articles]
+
+        response = es.indices.delete(index="index", ignore=[400, 404])
+        
+        if sortSelect == "Tarihe Göre":
+            if incdec == "Artan":
+                articles = sorted(articles, key=lambda x: x['date'])
+                return render(request, 'article_page.html', {"articles": articles})
+
+            else:
+                articles = sorted(articles, key=lambda x: x['date'], reverse=True)
+                return render(request, 'article_page.html', {"articles": articles})
+            
+        else:
+            if incdec == "Artan":
+                articles = sorted(articles, key=lambda x: x['citation'])
+                return render(request, 'article_page.html', {"articles": articles})
+
+            else:
+                articles = sorted(articles, key=lambda x: x['citation'], reverse=True)
+                return render(request, 'article_page.html', {"articles": articles})

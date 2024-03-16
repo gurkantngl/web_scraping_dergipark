@@ -3,6 +3,7 @@ import re
 from pymongo.mongo_client import MongoClient
 from inline_requests import inline_requests
 from scrapy.http import Request
+import time
 
 client = MongoClient('127.0.0.1',27017)
 db = client.Yazlab2
@@ -27,73 +28,82 @@ class ArticlesSpider(scrapy.Spider):
     
     @inline_requests
     def parse(self, response):
-        result = collection_name.find_one({self.keyword:{"$exists": True}}) is not None
-        if not result:
-            links = response.xpath("//div[@class='card article-card dp-card-outline']")
-            wrong = response.xpath("//div[@class='alert-text']/p[1]//text()").getall()
-            wrong = ' '.join(wrong)
+        collection_name.delete_many({"not_found": {"$exists": True}})
+        not_found = response.xpath("//div[@class='alert-text']/p[1]//text()").getall()
+        not_found = ' '.join(not_found)
+        
+        if not_found is None:
+            result = collection_name.find_one({"keyword":self.keyword}) is not None
             
-            self.count = len(links)
-            
-            yield{
-                "wrong" : wrong,
-                "keyword" : self.keyword
-            }
-            
-            for link in links:
-                title = link.xpath(".//div[@class='card-body']/h5[@class='card-title']/a[1]/text()").get().strip()
-                url = link.xpath(".//div[@class='card-body']/h5[@class='card-title']/a[1]/@href").get().strip()
+            if not result:
+                links = response.xpath("//div[@class='card article-card dp-card-outline']")
+                wrong = response.xpath("//div[@class='alert-text']/p[1]//text()").getall()
+                wrong = ' '.join(wrong)
                 
-                count = len(link.xpath(".//div[@class='card-body']/h5//small").getall())
+                self.count = len(links)
                 
-                article_type = "-"
-                publisher = ""
-                if count == 2:
-                    article_type = link.xpath(".//div[@class='card-body']/h5/small[1]/span/text()").get()
-                    textList = link.xpath(".//div[@class='card-body']/h5/small[2]//text()").getall()  
-                else:
-                    textList = link.xpath(".//div[@class='card-body']/h5/small[1]//text()").getall()
-                
-                str = ' '.join(textList)
-                str = str.replace("\n","")
-                str = str.strip()
-                
-                
-                authors = str.split('(', 1)[0].strip().split(',')
-                authors = [author.strip() for author in authors if len(author)!=0]
-                
-                publisher = re.search(r'\),\s*(.*?),', str)
-                if publisher:
-                    publisher = publisher.group(1).strip()
-                
-                
-                date = re.search(r'\((.*?)\)', str)
-                if date:
-                    date = date.group(1)
-
-                doi = link.xpath(".//a[starts-with(@href,'https://doi.org')]/text()").get()
-                if doi is None:
-                    doi = "-"
-                    
-                article = {
-                    "type" : article_type,
-                    "title" : title,
-                    "link" : url,
-                    "authors" : authors,
-                    "date" : date,
-                    "publisher" : publisher,
-                    "doi" : doi,
+                yield{
+                    "wrong" : wrong,
+                    "keyword" : self.keyword
                 }
                 
-                self.articles.append(article)
-                
-            
-                
-                yield Request(url, callback=self.parse_article)
-            
+                for link in links:
+                    title = link.xpath(".//div[@class='card-body']/h5[@class='card-title']/a[1]/text()").get().strip()
+                    url = link.xpath(".//div[@class='card-body']/h5[@class='card-title']/a[1]/@href").get().strip()
+                    
+                    count = len(link.xpath(".//div[@class='card-body']/h5//small").getall())
+                    
+                    article_type = "-"
+                    publisher = ""
+                    if count == 2:
+                        article_type = link.xpath(".//div[@class='card-body']/h5/small[1]/span/text()").get()
+                        textList = link.xpath(".//div[@class='card-body']/h5/small[2]//text()").getall()  
+                    else:
+                        textList = link.xpath(".//div[@class='card-body']/h5/small[1]//text()").getall()
+                    
+                    str = ' '.join(textList)
+                    str = str.replace("\n","")
+                    str = str.strip()
+                    
+                    
+                    authors = str.split('(', 1)[0].strip().split(',')
+                    authors = [author.strip() for author in authors if len(author)!=0]
+                    
+                    publisher = re.search(r'\),\s*(.*?),', str)
+                    if publisher:
+                        publisher = publisher.group(1).strip()
+                    
+                    
+                    date = re.search(r'\((.*?)\)', str)
+                    if date:
+                        date = date.group(1)
 
+                    doi = link.xpath(".//a[starts-with(@href,'https://doi.org')]/text()").get()
+                    if doi is None:
+                        doi = "-"
+                        
+                    article = {
+                        "type" : article_type,
+                        "title" : title,
+                        "link" : url,
+                        "authors" : authors,
+                        "date" : date,
+                        "publisher" : publisher,
+                        "doi" : doi,
+                    }
+                    
+                    self.articles.append(article)
+                    
+                
+                    
+                    yield Request(url, callback=self.parse_article)
+            else:
+                print("this keyword is already in the database")
         else:
-            print("this keyword is already in the database")
+            notFound = {
+                "not_found" : not_found,
+                }
+            result = collection_name.insert_one(notFound)
         
     def parse_article(self, response):
         title = response.xpath("//h3[@class='article-title']/text()").getall()
@@ -103,6 +113,14 @@ class ArticlesSpider(scrapy.Spider):
         abstract = response.xpath("//div[@class='article-abstract data-section']//p//text()").getall()
         abstract = ' '.join(abstract).strip()
         abstract = abstract.replace("\n","").replace("\r","")
+        
+        pdfUrl = "https://dergipark.org.tr"+response.xpath("//a[@class='btn btn-sm float-left article-tool pdf d-flex align-items-center']/@href").get()
+        citation = response.xpath("//a[contains(@href, 'cited_by_articles')]/text()").get()
+        if citation != None:
+            citation = citation.strip()
+            citation = re.findall(r'\d+', citation)[0]
+        else:
+            citation = "0"
         
         keywords = response.xpath("//div[@class='article-keywords data-section']//p//text()").get()
         keywords = [keyword.strip() for keyword in keywords if len(keyword.strip())!=0 and keyword not in ',']             
@@ -121,6 +139,8 @@ class ArticlesSpider(scrapy.Spider):
             "references" : referenceList,
             "keywords" : keywords,
             "abstract" : abstract,
+            "pdfUrl" : pdfUrl,
+            "citation" : citation,
         } 
         
         self.articles2.append(article)
@@ -133,7 +153,6 @@ class ArticlesSpider(scrapy.Spider):
                         i.update(j)
                         break
         
-            print(self.articles)
             try:
                 for article in self.articles:   
                     result = collection_name.insert_one(article)

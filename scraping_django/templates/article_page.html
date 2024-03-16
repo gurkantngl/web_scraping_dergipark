@@ -38,9 +38,29 @@
             </div>
         </form>
 
+        <form id="sortBy" action="{% url 'sort' %}" method="POST">
+            {% csrf_token %}
+            <div class="center">
+                <select name="sortSelect">
+                    <option value="Tarihe Göre">Tarihe Göre</option>
+                    <option value="Atıf Sayısına Göre">Atıf Sayısına Göre</option>
+                    <input type="hidden" name="keyword" value="{{ keyword }}"/>
+                </select>
+                <select name="incdec">
+                    <option value="Artan">Artan</option>
+                    <option value="Azalan">Azalan</option>
+                </select>
+                
+                <button type="submit">Sırala</button>
+            </div>
+        </form>
+
         {% for article in articles %}
             <section id="makale">
                 <h2>{{ article.title }}</h2>
+                <p>
+                    <strong>URL: </strong><a href="{{ article.pdfUrl }}" target="_blank">{{ article.pdfUrl }}</a>
+                </p>
                 <p>
                     <strong>Yayın Türü:</strong> {{ article.type }}
                 </p>
@@ -59,10 +79,12 @@
                     <strong>DOI:</strong> {{ article.doi }}
                 </p>
                 <p>
+                    <strong>Atıf Sayısı:</strong> {{ article.citation }}
+                </p>
+                <p>
                     <strong>Özet:</strong> {{ article.abstract }}
                 </p>
             </section>
         {% endfor %}
-        {{ types }}
     </body>
 </html>
