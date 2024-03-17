@@ -5,7 +5,7 @@ body {
 }
 
 header {
-    background-color: #3498db;
+    background-color: #BD2D2D;
     color: #fff;
     text-align: center;
     padding: 1em 0;
@@ -24,11 +24,53 @@ section {
 }
 
 footer {
-    background-color: #3498db;
+    background-color: #BD2D2D;
     color: #fff;
     text-align: center;
     padding: 1em 0;
     position: fixed;
     bottom: 0;
     width: 100%;
+}
+
+.center {
+    text-align: center;
+}
+
+form {
+    margin-bottom: 20px;
+}
+
+form div {
+    margin-bottom: 10px;
+}
+
+select, input[type="text"], button {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+button {
+    background-color: #197c9e;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #197c8a;
+}
+
+input[type="text"] {
+    width: 120px;
+}
+
+@media screen and (max-width: 600px) {
+    select, input[type="text"], button {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 5px;
+    }
 }

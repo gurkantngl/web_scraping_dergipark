@@ -12,20 +12,20 @@
             <h1>DergiPark</h1>
         </header>
 
-        <form id="filterDB" action="{% url 'filter' %}" method="POST">
+        <form id="filterDB" action="{% url 'filter' %}" method="POST" style="margin-top:30px">
             {% csrf_token %}
             <div class="center">
-                <select name="keyword">
+                <select name="keyword" title="Keyword">
                     {% for keyword in keywords %}
                         <option value="{{ keyword }}">{{ keyword }}</option>
                     {% endfor %}
                 </select>
-                <select name="author">
+                <select name="author" title="Yazar">
                     {% for author in authors %}
                         <option value="{{ author }}">{{ author }}</option>
                     {% endfor %}
                 </select>
-                <select name="type">
+                <select name="type" title="Type">
                     {% for type in types %}
                         <option value="{{ type }}">{{ type }}</option>
                     {% endfor %}
