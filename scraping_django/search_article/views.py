@@ -31,8 +31,7 @@ def search(request):
         es = Elasticsearch("http://localhost:9200")
         
         not_found = collection_name.find_one({"not_found": {"$exists": True}})
-        l = len(not_found)
-        if len(not_found["not_found"]) != 0:
+        if not_found is not None:
             return render(request, "not_found.html", {"not_found": not_found["not_found"]})
         
         types = list(set([doc['type'] for doc in collection_name.find({}, {'_id': 0, 'type': 1}) if 'type' in doc]))

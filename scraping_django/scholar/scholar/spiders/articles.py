@@ -31,10 +31,9 @@ class ArticlesSpider(scrapy.Spider):
         collection_name.delete_many({"not_found": {"$exists": True}})
         not_found = response.xpath("//div[@class='alert-text']/p[1]//text()").getall()
         not_found = ' '.join(not_found)
-        
-        if not_found is None:
+        t = len(not_found) == 0
+        if len(not_found) == 0:
             result = collection_name.find_one({"keyword":self.keyword}) is not None
-            
             if not result:
                 links = response.xpath("//div[@class='card article-card dp-card-outline']")
                 wrong = response.xpath("//div[@class='alert-text']/p[1]//text()").getall()
@@ -98,7 +97,7 @@ class ArticlesSpider(scrapy.Spider):
                     
                     yield Request(url, callback=self.parse_article)
             else:
-                print("this keyword is already in the database")
+                print("-------------------------------------------------------------------------------------------------------")
         else:
             notFound = {
                 "not_found" : not_found,
