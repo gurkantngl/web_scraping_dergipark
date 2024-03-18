@@ -57,34 +57,60 @@
 
         {% for article in articles %}
             <section id="makale">
-                <h2>{{ article.title }}</h2>
-                <p>
-                    <strong>URL: </strong><a href="{{ article.pdfUrl }}" target="_blank">{{ article.pdfUrl }}</a>
-                </p>
-                <p>
-                    <strong>Yayın Türü:</strong> {{ article.type }}
-                </p>
-                <p>
-                    <strong>Yayımlanma Tarihi:</strong> {{ article.date }}
-                </p>
-                <p>
-                    <strong>Yayıncı İsmi:</strong> {{ article.publisher }}
-                </p>
-                <p>
-                    <strong>Yazarlar:</strong> {% for author in article.authors %}
-                        {{ author }}{% if not forloop.last %}, {% endif %}
-                    {% endfor %}
-                </p>
-                <p>
-                    <strong>DOI:</strong> {{ article.doi }}
-                </p>
-                <p>
-                    <strong>Atıf Sayısı:</strong> {{ article.citation }}
-                </p>
-                <p>
-                    <strong>Özet:</strong> {{ article.abstract }}
-                </p>
+                <h2 onclick="toggleDetails('{{ article.title }}')">{{ article.title }}</h2>
+                <div id="{{ article.title }}" style="display: none;">
+                    <p>
+                        <strong>URL: </strong><a href="{{ article.pdfUrl }}" target="_blank">{{ article.pdfUrl }}</a>
+                    </p>
+                    <p>
+                        <strong>Anahtar Kelimeler:</strong> {% for keyword in article.keywords %}
+                            {{ keyword }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </p>
+                    <p>
+                        <strong>Yayın Türü:</strong> {{ article.type }}
+                    </p>
+                    <p>
+                        <strong>Yayımlanma Tarihi:</strong> {{ article.date }}
+                    </p>
+                    <p>
+                        <strong>Yayıncı İsmi:</strong> {{ article.publisher }}
+                    </p>
+                    <p>
+                        <strong>Yazarlar:</strong> {% for author in article.authors %}
+                            {{ author }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </p>
+                    <p>
+                        <strong>DOI:</strong> {{ article.doi }}
+                    </p>
+                    <p>
+                        <strong>Alıntı Sayısı:</strong> {{ article.citation }}
+                    </p>
+                    <strong>Referanslar:</strong>
+                    <div id="references">
+                        <ul>
+                            
+                            {% for reference in article.references %}
+                                <li>{{ reference }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <p>
+                        <strong>Özet:</strong> {{ article.abstract }}
+                    </p>
+                </div>
             </section>
         {% endfor %}
+    <script>
+        function toggleDetails(title) {
+            var details = document.getElementById(title);
+            if (details.style.display === "none") {
+                details.style.display = "block";
+            } else {
+                details.style.display = "none";
+            }
+        }
+    </script>
     </body>
 </html>

@@ -40,7 +40,7 @@ def search(request):
         authors = list(set([author for document in collection_name.find() for author in document.get("authors", [])]))
         authors.insert(0, "")
         
-        keywords = list(set([doc['keyword'] for doc in collection_name.find({}, {'_id': 0, 'keyword': 1}) if 'keyword' in doc]))
+        keywords = list(set([keyword for document in collection_name.find() for keyword in document.get("keywords", [])]))
         keywords.insert(0, "")
         
         for document in collection_name.find():
@@ -86,6 +86,19 @@ def filter(request):
         
         if len(keyword) != 0:
             print("keyword filtresi")
+            query = {
+                    "bool": {
+                        "filter": [
+                            {
+                                "term": {
+                                    "keywords.keyword": keyword
+                                }
+                            }
+                        ]
+                    }
+                }
+            
+            body["query"]["bool"]["must"].append(query)
         
         if len(author) != 0:
             print("author filtresi")
@@ -195,20 +208,29 @@ def sort(request):
 
         response = es.indices.delete(index="index", ignore=[400, 404])
         
+        types = list(set([doc['type'] for doc in collection_name.find({}, {'_id': 0, 'type': 1}) if 'type' in doc]))
+        types.insert(0, "")
+        
+        authors = list(set([author for document in collection_name.find() for author in document.get("authors", [])]))
+        authors.insert(0, "")
+        
+        keywords = list(set([keyword for document in collection_name.find() for keyword in document.get("keywords", [])]))
+        keywords.insert(0, "")
+        
         if sortSelect == "Tarihe Göre":
             if incdec == "Artan":
                 articles = sorted(articles, key=lambda x: x['date'])
-                return render(request, 'article_page.html', {"articles": articles})
+                return render(request, 'article_page.html', {"articles": articles, "keywords": keywords, "authors": authors, "types": types})
 
             else:
                 articles = sorted(articles, key=lambda x: x['date'], reverse=True)
-                return render(request, 'article_page.html', {"articles": articles})
+                return render(request, 'article_page.html', {"articles": articles, "keywords": keywords, "authors": authors, "types": types})
             
         else:
             if incdec == "Artan":
                 articles = sorted(articles, key=lambda x: x['citation'])
-                return render(request, 'article_page.html', {"articles": articles})
+                return render(request, 'article_page.html', {"articles": articles, "keywords": keywords, "authors": authors, "types": types})
 
             else:
                 articles = sorted(articles, key=lambda x: x['citation'], reverse=True)
-                return render(request, 'article_page.html', {"articles": articles})
+                return render(request, 'article_page.html', {"articles": articles, "keywords": keywords, "authors": authors, "types": types})

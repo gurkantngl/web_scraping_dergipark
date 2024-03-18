@@ -121,9 +121,9 @@ class ArticlesSpider(scrapy.Spider):
         else:
             citation = "0"
         
-        keywords = response.xpath("//div[@class='article-keywords data-section']//p//text()").get()
+        keywords = response.xpath("//div[@class='article-keywords data-section']/p//text()").getall()
         keywords = [keyword.strip() for keyword in keywords if len(keyword.strip())!=0 and keyword not in ',']             
-        keywords = [word.split(';') if ";" in word else word for word in keywords ] 
+        #keywords = [word.split(';') if ";" in word else word for word in keywords ] 
         references = response.xpath("//div[@class='article-citations data-section']/div/ul/li")
         referenceList = []
         for reference in references:
