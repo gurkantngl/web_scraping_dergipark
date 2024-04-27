@@ -10,6 +10,7 @@ This project is a web scraper built with Scrapy to extract article information f
 ## Installation
 
 1. Clone the project repository
+
 2. Change directory to the project folder
    ```bash
    cd scraping_django
