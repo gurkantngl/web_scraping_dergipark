@@ -5,6 +5,7 @@ This project is a web scraper built with Scrapy to extract article information f
 ## Features
 
 - Scrapes article titles, authors, abstracts, keywords, and publication dates.
+- Shows article informations on the web page
 
 ## Installation
 
